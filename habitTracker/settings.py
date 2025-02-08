@@ -38,9 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'authentication',
+
+    # Third-party packages
+    'rest_framework',      # Django REST Framework for APIs
+    'corsheaders',         # CORS handling for frontend integration
+
+    # Your custom apps
+    'authentication',      # CustomUser model and authentication       # Habit tracking app
 ]
-#AUTH_USER_MODEL = 'authentication.CustomUser'
+
+AUTH_USER_MODEL = 'authentication.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

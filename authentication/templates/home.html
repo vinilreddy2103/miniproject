@@ -4,13 +4,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Habit Tracker - Home</title>
 </head>
 <body>
-    <h2>Hello, World!</h2>
-    
-    <p>Welcome, {{ request.user.username }}!</p>
+    <h2>Welcome, {{ request.user.username }}</h2>
+    <p>Your habits for today:</p>
+
+    <!-- Habit Form -->
+    <form id="habit-form">
+        <label for="habit">Habit Name:</label>
+        <input type="text" id="habit" name="habit" required>
+
+        <label for="type">Type:</label>
+        <select id="type" onchange="toggleCountInput()">
+            <option value="measurable">Measurable</option>
+            <option value="non-measurable">Non-Measurable</option>
+        </select>
+
+        <div id="count-container">
+            <label for="target-count">Target Count:</label>
+            <input type="number" id="target-count" name="target-count" min="1" value="1">
+        </div>
+
+        <button type="submit">Add Habit</button>
+    </form>
+
+    <h3>Your Habits</h3>
+    <ul id="habits-list"></ul>
 
     <a href="{% url 'logout' %}">Logout</a>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadHabits();
+        });
+
+        function loadHabits() {
+            fetch("http://127.0.0.1:8000/api/user-habits/")
+                .then(response => response.json())
+                .then(data => {
+                    let list = document.getElementById("habits-list");
+                    list.innerHTML = ""; // Clear previous list
+
+                    if (data.habits.length === 0) {
+                        list.innerHTML = "<p>No habits added yet!</p>";
+                        return;
+                    }
+
+                    data.habits.forEach(habit => {
+                        let li = document.createElement("li");
+                        li.innerHTML = `
+                            <strong>${habit.name}</strong> (${habit.habit_type})
+                            ${habit.habit_type === "measurable" ? `
+                                <button onclick="incrementCount(${habit.id}, ${habit.current_count}, ${habit.target_count})">+1</button>
+                                Progress: <span id="count-${habit.id}">${habit.current_count}</span> / ${habit.target_count}
+                            ` : ""}
+                            <input type="checkbox" ${habit.completed ? "checked" : ""} onclick="toggleCompletion(${habit.id}, this.checked)">
+                        `;
+                        list.appendChild(li);
+                    });
+                })
+                .catch(error => console.error("Error loading habits:", error));
+        }
+
+        function toggleCompletion(habitId, completed) {
+            fetch(`http://127.0.0.1:8000/api/update-habit/${habitId}/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ completed: completed })
+            }).then(() => loadHabits());
+        }
+
+        function incrementCount(habitId, currentCount, targetCount) {
+            let newCount = currentCount + 1;
+            let completed = newCount >= targetCount;  // Mark as completed when target is reached
+
+            fetch(`http://127.0.0.1:8000/api/update-habit/${habitId}/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ current_count: newCount, completed: completed })
+            }).then(() => {
+                document.getElementById(`count-${habitId}`).innerText = newCount;
+                loadHabits();  // Reload habits to update completed status
+            });
+        }
+
+        function toggleCountInput() {
+            let type = document.getElementById("type").value;
+            let countContainer = document.getElementById("count-container");
+            countContainer.style.display = (type === "measurable") ? "block" : "none";
+        }
+
+        // Habit Form Submission
+        document.getElementById("habit-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            let habitName = document.getElementById("habit").value;
+            let habitType = document.getElementById("type").value;
+            let targetCount = habitType === "measurable" ? parseInt(document.getElementById("target-count").value) : 0;
+
+            fetch("http://127.0.0.1:8000/api/add-habit/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: habitName, habit_type: habitType, target_count: targetCount, current_count: 0 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Habit added successfully!");
+                loadHabits();
+                document.getElementById("habit").value = "";
+                document.getElementById("target-count").value = "1"; // Reset count input
+            })
+            .catch(error => console.error("Error:", error));
+        });
+
+        // Hide count input initially if default type is non-measurable
+        toggleCountInput();
+
+        loadHabits();
+    </script>
 </body>
 </html>
