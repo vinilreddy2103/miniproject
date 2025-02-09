@@ -10,6 +10,7 @@ from django.http import JsonResponse
 
 
 # ✅ SIGNUP VIEW
+# ✅ SIGNUP VIEW (Fixed Redirection)
 def signup(request):
     if request.user.is_authenticated:
         return redirect("home")
@@ -20,23 +21,22 @@ def signup(request):
         password = request.POST.get("password")
 
         if not username or not email or not password:
-            messages.error(request, "All fields are required.")
-            return render(request, "signup.html")
+            return JsonResponse({"error": "All fields are required."}, status=400)
 
         if CustomUser.objects.filter(username=username).exists():
-            messages.error(request, "Username already taken.")
-            return render(request, "signup.html")
+            return JsonResponse({"error": "Username already taken."}, status=400)
 
         if CustomUser.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered.")
-            return render(request, "signup.html")
+            return JsonResponse({"error": "Email already registered."}, status=400)
 
-        # Create the user
+        # ✅ Create the user
         user = CustomUser.objects.create_user(username=username, email=email, password=password)
-        messages.success(request, "Account created successfully. Please log in.")
-        return redirect("login")
+        
+        # ✅ Return JSON response to frontend for redirection
+        return JsonResponse({"message": "Account created successfully!", "redirect": "/login/"}, status=201)
 
     return render(request, "signup.html")
+
 
 
 # ✅ LOGIN VIEW
