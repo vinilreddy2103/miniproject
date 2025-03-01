@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: white; display: flex; height: 100vh; }
+        .sidebar { width: 200px; background-color: #333; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar button { background: #444; color: white; border: none; padding: 10px; text-align: left; width: 100%; cursor: pointer; }
+        .sidebar button:hover { background: #555; }
+        .main-content { flex: 1; display: flex; padding: 20px; }
+        .habit-column { flex: 1; padding: 20px; border-right: 1px solid #444; }
+        .habit-column:last-child { border-right: none; }
+        .habit-list { margin-top: 20px; }
+        .habit { background: #222; padding: 10px; margin-top: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; gap: 5px; }
+        .habit .edit-btn, .habit .delete-btn { background: transparent; border: none; font-size: 16px; cursor: pointer; }
+        .edit-btn { color: yellow; }
+        .delete-btn { color: red; }
+        .increment-btn { background: green; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .add-habit-btn { background: blue; color: white; padding: 10px; border: none; cursor: pointer; margin-top: 10px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; padding: 20px; border-radius: 10px; width: 300px; }
+        .modal input, .modal select { width: 100%; padding: 10px; margin-top: 10px; background: #222; color: white; border: none; }
+        .modal button { margin-top: 10px; padding: 10px; width: 48%; border: none; cursor: pointer; }
+        .save-btn { background: green; color: white; }
+        .cancel-btn { background: red; color: white; }
+        #habit-target-wrapper { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <button>All Habits</button>
+        <button>Evening</button>
+        <button>New Area</button>
+        <button>Manage Habits</button>
+        <button>App Settings</button>
+        <button>Resources</button>
+    </div>
+
+    <div class="main-content">
+        <div class="habit-column">
+            <h2>Incomplete Habits</h2>
+            <button class="add-habit-btn" onclick="openModal()">+ Add Habit</button>
+            <div class="habit-list" id="incomplete-habits"></div>
+        </div>
+
+        <div class="habit-column">
+            <h2>Completed Habits</h2>
+            <div class="habit-list" id="completed-habits"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay"></div>
+
+    <div class="modal" id="habit-modal">
+        <h3 id="modal-title">Add New Habit</h3>
+        <input type="text" id="habit-name" placeholder="Habit Name">
+        
+        <div id="habit-target-wrapper">
+            <input type="number" id="habit-target" placeholder="Target Count" min="1" value="1">
+        </div>
+        
+        <select id="habit-type" onchange="toggleTargetCount()">
+            <option value="measurable">Measurable</option>
+            <option value="non-measurable">Non-Measurable</option>
+        </select>
+
+        <button class="save-btn" onclick="saveHabit()">Save</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+    </div>
+
+    <script>
+        let editingHabit = null;
+
+        function openModal(habit = null) {
+            document.getElementById('habit-modal').style.display = 'block';
+            document.getElementById('modal-overlay').style.display = 'block';
+
+            if (habit) {
+                document.getElementById('modal-title').innerText = "Edit Habit";
+                document.getElementById('habit-name').value = habit.dataset.name;
+                document.getElementById('habit-type').value = habit.dataset.type;
+                document.getElementById('habit-target').value = habit.dataset.target || 1;
+                toggleTargetCount();
+                editingHabit = habit;
+            } else {
+                document.getElementById('modal-title').innerText = "Add New Habit";
+                document.getElementById('habit-name').value = "";
+                document.getElementById('habit-target').value = 1;
+                editingHabit = null;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('habit-modal').style.display = 'none';
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        function toggleTargetCount() {
+            document.getElementById('habit-target-wrapper').style.display = 
+                document.getElementById('habit-type').value === 'measurable' ? 'block' : 'none';
+        }
+
+        function saveHabit() {
+            const name = document.getElementById('habit-name').value;
+            const type = document.getElementById('habit-type').value;
+            const target = document.getElementById('habit-target').value;
+
+            if (!name) {
+                alert("Enter a habit name!");
+                return;
+            }
+
+            if (editingHabit) {
+                editingHabit.dataset.name = name;
+                editingHabit.dataset.type = type;
+                editingHabit.dataset.target = target;
+
+                editingHabit.innerHTML = `
+                    <strong>${name}</strong>
+                    ${type === 'measurable' ? `<span>Progress: ${editingHabit.dataset.progress || 0}/${target}</span> 
+                    <button class="increment-btn" onclick="incrementProgress(this)">+</button>` : 
+                    `<input type="checkbox" onclick="completeHabit(this)">`}
+                    <button class="edit-btn" onclick="openModal(this.parentElement)">✏️</button>
+                    <button class="delete-btn" onclick="this.parentElement.remove()">🗑️</button>
+                `;
+            } else {
+                const habitDiv = document.createElement('div');
+                habitDiv.classList.add('habit');
+                habitDiv.dataset.name = name;
+                habitDiv.dataset.type = type;
+                habitDiv.dataset.target = target;
+                habitDiv.dataset.progress = 0;
+
+                habitDiv.innerHTML = `
+                    <strong>${name}</strong>
+                    ${type === 'measurable' ? `<span>Progress: 0/${target}</span> <button class="increment-btn" onclick="incrementProgress(this)">+</button>` : 
+                    `<input type="checkbox" onclick="completeHabit(this)">`}
+                    <button class="edit-btn" onclick="openModal(this.parentElement)">✏️</button>
+                    <button class="delete-btn" onclick="this.parentElement.remove()">🗑️</button>
+                `;
+
+                document.getElementById('incomplete-habits').appendChild(habitDiv);
+            }
+
+            closeModal();
+        }
+
+        function incrementProgress(button) {
+            let habitDiv = button.parentElement;
+            let progress = parseInt(habitDiv.dataset.progress) + 1;
+            let target = parseInt(habitDiv.dataset.target);
+
+            habitDiv.dataset.progress = progress;
+            habitDiv.querySelector("span").innerText = `Progress: ${progress}/${target}`;
+
+            if (progress >= target) {
+                document.getElementById('completed-habits').appendChild(habitDiv);
+                button.remove();
+            }
+        }
+
+        function completeHabit(checkbox) {
+            let habitDiv = checkbox.parentElement;
+            document.getElementById('completed-habits').appendChild(habitDiv);
+            checkbox.disabled = true;
+        }
+    </script>
+
+</body>
+</html>
