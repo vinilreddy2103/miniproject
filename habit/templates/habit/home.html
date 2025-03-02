@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'habit/home.css' %}">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div>
+            <button>All Habits</button>
+            <button>Evening</button>
+            <button>New Area</button>
+            <button>Manage Habits</button>
+            <button>App Settings</button>
+            <button>Resources</button>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <div class="main-content">
+        <div class="habit-column">
+            <h2>Incomplete Habits</h2>
+            <button class="add-habit-btn" onclick="openModal()">+ Add Habit</button>
+            <div class="habit-list" id="incomplete-habits"></div>
+        </div>
+        <div class="habit-column">
+            <h2>Completed Habits</h2>
+            <div class="habit-list" id="completed-habits"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal" id="habit-modal">
+        <h3 id="modal-title">Add New Habit</h3>
+        <input type="text" id="habit-name" placeholder="Habit Name">
+        <div id="habit-target-wrapper">
+            <input type="number" id="habit-target" placeholder="Target Count" min="1" value="1">
+        </div>
+        <select id="habit-type" onchange="toggleTargetCount()">
+            <option value="measurable">Measurable</option>
+            <option value="non-measurable">Non-Measurable</option>
+        </select>
+        <button class="save-btn" onclick="saveHabit()">Save</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+    </div>
+
+    <script defer src="{% static 'habit/home.js' %}"></script>
+</body>
+
+</html>

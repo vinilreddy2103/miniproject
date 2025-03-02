@@ -10,7 +10,7 @@ import json
 
 @login_required
 def home(request):
-    return render(request, "home.html")
+    return render(request, "habit/home.html")
 
 @login_required
 def get_user_habits(request):

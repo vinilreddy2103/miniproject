@@ -28,7 +28,7 @@ def signup(request):
         CustomUser.objects.create_user(username=username, email=email, password=password)
         return JsonResponse({"message": "Account created successfully!", "redirect": "/login/"}, status=201)
 
-    return render(request, "signup.html")
+    return render(request, "authentication/signup.html")
 
 
 def login(request):
@@ -49,7 +49,7 @@ def login(request):
         else:
             messages.error(request, "Invalid username or password.")
 
-    return render(request, "login.html")
+    return render(request, "authentication/login.html")
 
 def logout(request):
     auth_logout(request)
