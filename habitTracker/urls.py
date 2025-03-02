@@ -19,7 +19,8 @@ from django.urls import path,include
 from authentication import views
 from authentication import urls
 urlpatterns = [
-    path('',views.login,name='login'),
+    path('',views.landing,name='login'),
     path('admin/', admin.site.urls),
-    path('', include("authentication.urls")),
+    path('auth/', include("authentication.urls")),
+    path('habit/',include("habit.urls")),
 ]

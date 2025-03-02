@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     # Your custom apps
     'authentication',      # CustomUser model and authentication       # Habit tracking app
+    'habit',
 ]
 
 AUTH_USER_MODEL = 'authentication.CustomUser'

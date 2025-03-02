@@ -144,7 +144,7 @@
                     <span>Password</span>
                 </div>
                 <button type="submit" class="login-btn">Login</button>
-                <p class="register-link">Don't have an account? <a href="/signup/">Sign up</a></p>
+                <p class="register-link">Don't have an account? <a href="/auth/signup/">Sign up</a></p>
             </form>
         </div>
     </div>
@@ -157,7 +157,7 @@
             let password = document.querySelector("input[name='password']").value;
             let csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']").value; // ✅ Get CSRF token
 
-            fetch("/login/", {
+            fetch("/auth/login/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
