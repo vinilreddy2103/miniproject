@@ -73,6 +73,24 @@ body {
     gap: 5px;
 }
 
+/* 🔥 Streak styling */
+.habit .habit-streak {
+    background: #444;
+    color: #ffcc00;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.habit .habit-streak::before {
+    content: "🔥";
+}
+
+/* End streak styling */
+
 .habit .edit-btn,
 .habit .delete-btn {
     background: transparent;

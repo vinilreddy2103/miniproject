@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from authentication.models import CustomUser, Habit
+from authentication.models import CustomUser
 import json
 
 def signup(request):

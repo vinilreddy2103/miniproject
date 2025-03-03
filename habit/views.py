@@ -1,16 +1,55 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from authentication.models import CustomUser, Habit
+from habit.models import Habit
+from django.utils.timezone import now
 import json
 
+def reset_user_habits(user):
+    today = now().date()
+    habits = Habit.objects.filter(user=user)
+
+    habits_reset = 0  # Track how many habits are reset
+
+    for habit in habits:
+        if habit.last_reset_date == today:
+            continue  # Skip if already reset today
+
+        if habit.habit_type == "measurable":
+            habit.current_count = 0  # Reset progress for measurable habits
+            habit.completed = False
+        else:
+            habit.completed = False  # Mark non-measurable habits as incomplete
+
+        habit.last_reset_date = today  # Update last reset date
+        habit.save()
+        habits_reset += 1  # Increment counter
+
+    return habits_reset
+
+from datetime import date
+from .models import Habit
+
+def check_streak(user):
+    """Resets streak to zero if a day is missed."""
+    today = date.today()
+    habits = Habit.objects.filter(user=user)
+
+    for habit in habits:
+        if habit.last_completed:
+            days_since_last = (today - habit.last_completed).days
+            if days_since_last > 1:
+                habit.streak = 0  # Reset streak if a day is missed
+                habit.last_completed = None  # Set last completed to null
+                habit.save()
 
 @login_required
 def home(request):
+    reset_user_habits(request.user)  # Reset habits when the user logs in
+    check_streak(request.user)
     return render(request, "habit/home.html")
+
 
 @login_required
 def get_user_habits(request):
@@ -23,6 +62,7 @@ def get_user_habits(request):
             "current_count": habit.current_count,
             "target_count": habit.target_count,
             "completed": habit.completed,
+            "streak":habit.streak,
         }
         for habit in habits
     ]
@@ -49,7 +89,8 @@ def add_habit(request):
                 habit_type=habit_type,
                 target_count=target_count,
                 current_count=current_count,
-                completed=False
+                completed=False,
+                last_reset_date=now().date()
             )
             return JsonResponse({"message": "Habit added successfully!", "id": habit.id}, status=201)
 
@@ -57,15 +98,16 @@ def add_habit(request):
             print("Error in add_habit:", str(e))  # Debugging line
             return JsonResponse({"error": "Invalid JSON data"}, status=400)
 
+
 @csrf_exempt
 @login_required
 def update_habit(request, habit_id):
     try:
-        habit = Habit.objects.get(id=habit_id)
+        habit = Habit.objects.get(id=habit_id, user=request.user)
 
         if request.method == "PUT":
             data = json.loads(request.body)
-            
+
             # Update fields if they exist in request
             habit.name = data.get("name", habit.name)
             habit.habit_type = data.get("habit_type", habit.habit_type)
@@ -74,25 +116,27 @@ def update_habit(request, habit_id):
             habit.save()
 
             return JsonResponse({"message": "Habit updated successfully"}, status=200)
-        
+
         elif request.method == "POST":
             data = json.loads(request.body)
-            
+
             if "current_count" in data and data["current_count"] == "increment":
                 habit.current_count += 1
                 if habit.current_count >= habit.target_count:
                     habit.completed = True
                 habit.save()
-                return JsonResponse({"message": "Habit incremented", "new_progress": habit.current_count, "target": habit.target_count}, status=200)
+                return JsonResponse(
+                    {"message": "Habit incremented", "new_progress": habit.current_count, "target": habit.target_count},
+                    status=200,
+                )
 
             elif "completed" in data:
                 habit.completed = data["completed"]
                 habit.save()
                 return JsonResponse({"message": "Habit completion status updated"}, status=200)
 
-        # If the request method is not handled, return an error
         return JsonResponse({"error": "Invalid request method"}, status=400)
-    
+
     except Habit.DoesNotExist:
         return JsonResponse({"error": "Habit not found"}, status=404)
 
@@ -101,7 +145,6 @@ def update_habit(request, habit_id):
 
     except Exception as e:
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
-
 
 
 @csrf_exempt
@@ -130,9 +173,12 @@ def increment_habit(request, habit_id):
             habit.current_count += 1
             habit.completed = habit.current_count >= habit.target_count
             habit.save()
-            return JsonResponse({"message": "Habit progress updated", "new_progress": habit.current_count, "target": habit.target_count})
+            return JsonResponse(
+                {"message": "Habit progress updated", "new_progress": habit.current_count, "target": habit.target_count}
+            )
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 
 @csrf_exempt
@@ -145,10 +191,12 @@ def complete_habit(request, habit_id):
 
     if request.method == "POST":
         habit.completed = True
+        habit.update_streak()  # Use the update_streak method from the model
         habit.save()
-        return JsonResponse({"message": "Habit marked as completed"})
 
+        return JsonResponse({
+            "message": "Habit marked as completed",
+            "streak": habit.streak,
+            "last_completed": habit.last_completed.strftime("%Y-%m-%d"),
+        })
 
-def reset_habits():
-    Habit.objects.update(current_count=0, completed=False)
-    print("Daily habit reset completed.")

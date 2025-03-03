@@ -54,14 +54,19 @@ function createHabitElement(habit) {
     habitDiv.classList.add("habit");
 
     habitDiv.innerHTML = `
-         ${habit.habit_type === "non-measurable" ? `<input type="checkbox" ${habit.completed ? "checked" : ""} onchange="completeHabit(${habit.id})">` : ""}
-         <strong>${habit.name}</strong>
-         ${habit.habit_type === "measurable" ? `<span id="progress-${habit.id}">Progress: ${habit.current_count}/${habit.target_count}</span><button class="increment-btn" onclick="incrementHabit(${habit.id})">+</button>` : ""}
-         <button class="edit-btn" onclick="editHabit(${habit.id}, '${habit.name}', '${habit.habit_type}', ${habit.target_count})">✏️</button>
-         <button class="delete-btn" onclick="deleteHabit(${habit.id})">🗑️</button>
-         `;
+        ${habit.habit_type === "non-measurable" ? `<input type="checkbox" ${habit.completed ? "checked" : ""} onchange="completeHabit(${habit.id})">` : ""}
+        <strong>${habit.name}</strong>
+        ${habit.habit_type === "measurable" ? `
+            <span id="progress-${habit.id}">Progress: ${habit.current_count}/${habit.target_count}</span>
+            <button class="increment-btn" onclick="incrementHabit(${habit.id})">+</button>
+        ` : ""}
+        <span class="habit-streak" id="streak-${habit.id}">${habit.streak || 0}</span>
+        <button class="edit-btn" onclick="editHabit(${habit.id}, '${habit.name}', '${habit.habit_type}', ${habit.target_count})">✏️</button>
+        <button class="delete-btn" onclick="deleteHabit(${habit.id})">🗑️</button>
+    `;
     return habitDiv;
 }
+
 
 function incrementHabit(habitId) {
     fetch(`/habit/api/update-habit/${habitId}/`, {
@@ -73,19 +78,28 @@ function incrementHabit(habitId) {
         .then(data => {
             if (data.message) {
                 document.getElementById(`progress-${habitId}`).innerText = `Progress: ${data.new_progress}/${data.target}`;
-                fetchHabits();
+
+                // If progress reaches the target, mark habit as completed
+                if (data.new_progress >= data.target) {
+                    completeHabit(habitId);
+                } else {
+                    fetchHabits();
+                }
             }
         })
         .catch(error => console.error("Error incrementing habit:", error));
 }
 
+
 function completeHabit(habitId) {
-    fetch(`/habit/api/update-habit/${habitId}/`, {
+    fetch(`/habit/api/complete-habit/${habitId}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
         body: JSON.stringify({ completed: true })
     })
-        .then(() => fetchHabits())
+        .then(() => {
+            fetchHabits()
+        })
         .catch(error => console.error("Error completing habit:", error));
 }
 
