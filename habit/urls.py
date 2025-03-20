@@ -9,4 +9,5 @@ urlpatterns = [
     path("api/delete-habit/<int:habit_id>/", views.delete_habit, name="delete-habit"),
     path("api/increment-habit/<int:habit_id>/", views.increment_habit, name="increment-habit"),
     path("api/complete-habit/<int:habit_id>/", views.complete_habit, name="complete-habit"),
+    path("api/habit-detail/<int:habit_id>/", views.habit_detail, name="habit-detail"),  # New habit detail endpoint
 ]

@@ -10,6 +10,7 @@
 </head>
 
 <body>
+    <!-- Sidebar -->
     <div class="sidebar">
         <div>
             <button>All Habits</button>
@@ -22,6 +23,7 @@
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
+    <!-- Main Content -->
     <div class="main-content">
         <div class="habit-column">
             <h2>Incomplete Habits</h2>
@@ -34,20 +36,21 @@
         </div>
     </div>
 
-    <!-- Hidden Template for Habit Items (🔹 Added Streak Display) -->
+    <!-- Habit Template -->
     <template id="habit-template">
-        <div class="habit-item">
+        <div class="habit-item" onclick="openHabitDetail(this)">
             <input type="checkbox" class="habit-checkbox">
             <span class="habit-name"></span>
             <span class="habit-progress" id="progress-template"></span>
             <span class="habit-streak">Streak: <span class="streak-count" id="streak-template">0</span></span>
-            <!-- 🔹 Added streak display -->
             <button class="increment-btn">+</button>
             <button class="edit-btn">✏️</button>
             <button class="delete-btn">🗑️</button>
+            <button class="details-btn">📅 View Details</button>
         </div>
     </template>
 
+    <!-- Add/Edit Habit Modal -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
     <div class="modal" id="habit-modal">
         <h3 id="modal-title">Add New Habit</h3>
@@ -62,6 +65,25 @@
         <button class="save-btn" onclick="saveHabit()">Save</button>
         <button class="cancel-btn" onclick="closeModal()">Cancel</button>
     </div>
+
+    <!-- Habit Detail Modal -->
+    <div class="modal-overlay" id="habit-detail-overlay" onclick="closeHabitDetail()"></div>
+
+    <div class="modal" id="habit-detail-modal">
+        <button class="close-detail-btn" onclick="closeHabitDetail()" aria-label="Close">✖</button>
+
+        <h3>Habit Details</h3>
+
+        <p><strong>Habit Name:</strong> <span id="habit-detail-name"></span></p>
+        <p><strong>Type:</strong> <span id="habit-detail-type"></span></p>
+        <p><strong>Streak:</strong> <span id="habit-detail-streak" class="streak-highlight"></span></p>
+        <p><strong>Progress:</strong> <span id="habit-detail-progress" class="progress-value"></span></p>
+
+        <p><strong>Completed Dates:</strong></p>
+        <ul id="habit-completed-dates" class="completed-dates-list"></ul>
+    </div>
+
+
 
     <script defer src="{% static 'habit/home.js' %}"></script>
 </body>

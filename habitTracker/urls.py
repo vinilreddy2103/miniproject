@@ -17,10 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from authentication import views
-from authentication import urls
+from django.shortcuts import render
+
+def custom_404_view(request, exception):
+    return render(request, '404.html', status=404)
+
 urlpatterns = [
     path('',views.landing,name='login'),
     path('admin/', admin.site.urls),
     path('auth/', include("authentication.urls")),
     path('habit/',include("habit.urls")),
+
 ]

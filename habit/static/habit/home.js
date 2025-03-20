@@ -63,7 +63,10 @@ function createHabitElement(habit) {
         <span class="habit-streak" id="streak-${habit.id}">${habit.streak || 0}</span>
         <button class="edit-btn" onclick="editHabit(${habit.id}, '${habit.name}', '${habit.habit_type}', ${habit.target_count})">✏️</button>
         <button class="delete-btn" onclick="deleteHabit(${habit.id})">🗑️</button>
+        <button class="details-btn" onclick="openHabitDetail(${habit.id})">📅</button>
     `;
+    //habitDiv.addEventListener("click", () => openHabitDetail(habit.id));
+
     return habitDiv;
 }
 
@@ -157,3 +160,53 @@ function logout() {
 function getCSRFToken() {
     return document.querySelector("input[name='csrfmiddlewaretoken']")?.value || "";
 }
+
+function openHabitDetail(habitId) {
+    fetch(`/habit/api/habit-detail/${habitId}/`)
+        .then(response => response.json())
+        .then(data => {
+            // Set habit details
+            document.getElementById("habit-detail-name").innerText = `${data.name}`;
+            document.getElementById("habit-detail-type").innerText = `${data.habit_type}`;
+            document.getElementById("habit-detail-streak").innerText = `${data.streak || 0}`;
+
+            if (data.habit_type === "measurable") {
+                document.getElementById("habit-detail-progress").innerText =
+                    `${data.current_count}/${data.target_count}`;
+                document.getElementById("habit-detail-progress").style.display = "block";
+            } else {
+                document.getElementById("habit-detail-progress").style.display = "none";
+            }
+
+            // Display completed dates if available
+            document.getElementById("habit-completed-dates").innerText =
+                data.completed_dates?.length > 0
+                    ? `${data.completed_dates.join(", ")}`
+                    : "No completed dates available.";
+
+            // Show and position the modal
+            const modal = document.getElementById("habit-detail-modal");
+            const overlay = document.getElementById("habit-detail-overlay");
+            modal.style.display = "block";
+            overlay.style.display = "block";
+
+            modal.style.top = "10%";
+            modal.style.left = "50%";
+            modal.style.transform = "translate(-50%, 0)";
+        })
+        .catch(error => console.error("Error fetching habit detail:", error));
+}
+
+function closeHabitDetail() {
+    document.getElementById("habit-detail-modal").style.display = "none";
+    document.getElementById("habit-detail-overlay").style.display = "none";
+
+    // Clear previous details to avoid stale data
+    document.getElementById("habit-detail-name").innerText = "";
+    document.getElementById("habit-detail-type").innerText = "";
+    document.getElementById("habit-detail-streak").innerText = "";
+    document.getElementById("habit-detail-progress").innerText = "";
+    document.getElementById("habit-completed-dates").innerText = "";
+}
+
+

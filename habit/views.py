@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from habit.models import Habit
 from django.utils.timezone import now
 import json
+from datetime import date
 
 def reset_user_habits(user):
     today = now().date()
@@ -62,11 +63,13 @@ def get_user_habits(request):
             "current_count": habit.current_count,
             "target_count": habit.target_count,
             "completed": habit.completed,
-            "streak":habit.streak,
+            "streak": habit.streak,
+            "completed_dates": habit.completed_dates,
         }
         for habit in habits
     ]
     return JsonResponse({"habits": habits_list})
+
 
 
 @csrf_exempt
@@ -179,8 +182,6 @@ def increment_habit(request, habit_id):
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-
-
 @csrf_exempt
 @login_required
 def complete_habit(request, habit_id):
@@ -190,13 +191,34 @@ def complete_habit(request, habit_id):
         return JsonResponse({"error": "Habit not found"}, status=404)
 
     if request.method == "POST":
-        habit.completed = True
-        habit.update_streak()  # Use the update_streak method from the model
-        habit.save()
+        today = date.today().isoformat()
+
+        if today not in habit.completed_dates:
+            habit.completed_dates.append(today)  # Store today's date
+            habit.update_streak()  # Update streak
+            habit.save()
 
         return JsonResponse({
             "message": "Habit marked as completed",
             "streak": habit.streak,
             "last_completed": habit.last_completed.strftime("%Y-%m-%d"),
+            "completed_dates": habit.completed_dates,
         })
 
+
+@login_required
+def habit_detail(request, habit_id):
+    try:
+        habit = Habit.objects.get(id=habit_id, user=request.user)
+        return JsonResponse({
+            "id": habit.id,
+            "name": habit.name,
+            "habit_type": habit.habit_type,
+            "current_count": habit.current_count,
+            "target_count": habit.target_count,
+            "completed": habit.completed,
+            "streak": habit.streak,
+            "completed_dates": habit.completed_dates,
+        })
+    except Habit.DoesNotExist:
+        return JsonResponse({"error": "Habit not found"}, status=404)

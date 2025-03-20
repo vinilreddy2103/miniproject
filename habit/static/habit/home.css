@@ -1,3 +1,4 @@
+/* Global Reset */
 * {
     margin: 0;
     padding: 0;
@@ -5,43 +6,46 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #1a1a1a;
-    color: white;
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212;
+    color: #ffffff;
     display: flex;
     height: 100vh;
 }
 
+/* Sidebar Styling */
 .sidebar {
-    width: 200px;
-    background-color: #333;
+    width: 220px;
+    background: #1e1e1e;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     justify-content: space-between;
+    gap: 10px;
 }
 
 .sidebar button {
-    background: #444;
+    background: linear-gradient(145deg, #292929, #1f1f1f);
     color: white;
     border: none;
-    padding: 10px;
+    padding: 12px;
+    border-radius: 8px;
     text-align: left;
     width: 100%;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 .sidebar button:hover {
-    background: #555;
+    background: #444;
 }
 
 .logout-btn {
     margin-top: auto;
-    background: red;
+    background: #d32f2f;
 }
 
-/* Logout Button */
+/* Main Content */
 .main-content {
     flex: 1;
     display: flex;
@@ -52,6 +56,7 @@ body {
     flex: 1;
     padding: 20px;
     border-right: 1px solid #444;
+    overflow-y: auto;
 }
 
 .habit-column:last-child {
@@ -62,24 +67,26 @@ body {
     margin-top: 20px;
 }
 
+/* Habit Item */
 .habit {
     background: #222;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 5px;
+    padding: 15px;
+    margin-top: 12px;
+    border-radius: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    gap: 8px;
 }
 
-/* 🔥 Streak styling */
+/* Streak Styling */
 .habit .habit-streak {
     background: #444;
     color: #ffcc00;
     font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 5px;
+    padding: 5px 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -89,82 +96,170 @@ body {
     content: "🔥";
 }
 
-/* End streak styling */
-
+/* Habit Buttons */
 .habit .edit-btn,
 .habit .delete-btn {
     background: transparent;
     border: none;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
 .edit-btn {
-    color: yellow;
+    color: #ffd700;
 }
 
 .delete-btn {
-    color: red;
+    color: #ff4d4d;
 }
 
 .increment-btn {
-    background: green;
+    background: #4caf50;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 5px 12px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.increment-btn:hover {
+    background: #66bb6a;
 }
 
 .add-habit-btn {
-    background: blue;
+    background: #1976d2;
     color: white;
-    padding: 10px;
+    padding: 12px;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 20px;
+    transition: background 0.3s ease;
 }
 
-.modal-overlay,
+.add-habit-btn:hover {
+    background: #2196f3;
+}
+
+/* Modal Overlay & Modals */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+/* Modal Content */
 .modal {
     display: none;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #333;
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
+    background: #1e1e1e;
+    padding: 25px;
+    border-radius: 12px;
+    width: 340px;
+    z-index: 1001;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .modal input,
 .modal select {
     width: 100%;
     padding: 10px;
-    margin-top: 10px;
+    margin-top: 12px;
     background: #222;
     color: white;
     border: none;
+    border-radius: 8px;
 }
 
+/* Modal Buttons */
 .modal button {
-    margin-top: 10px;
-    padding: 10px;
+    margin-top: 12px;
+    padding: 12px;
     width: 48%;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
 .save-btn {
-    background: green;
+    background: #4caf50;
     color: white;
 }
 
 .cancel-btn {
-    background: red;
+    background: #d32f2f;
     color: white;
 }
 
-#habit-target-wrapper {
+button:active {
+    transform: scale(0.96);
+}
+
+/* Habit Detail Modal */
+#habit-detail-overlay {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1002;
+}
+
+/* Habit Detail Modal */
+.close-detail-btn {
+    position: absolute;
+    top: 1px;
+    /* Ensure it is near the top */
+    right: 0px;
+    /* Push it to the far right */
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    z-index: 10;
+    /* Ensure it's above other elements */
+}
+
+#habit-detail-modal {
+    position: fixed;
+    top: 5%;
+    left: 5%;
+    width: 80%;
+    height: 75%;
+    background: #2b2b2b;
+    padding: 30px;
+    border-radius: 16px;
+    z-index: 1003;
+    overflow-y: auto;
+    box-sizing: border-box;
+    /* Ensure padding doesn't affect size */
+}
+
+.close-detail-btn:hover {
+    transform: scale(1.2);
+}
+
+/* Habit Info Styling */
+.habit-info {
+    line-height: 1.8;
+    font-size: 1.2rem;
+}
+
+.habit-info strong {
+    font-weight: bold;
 }
